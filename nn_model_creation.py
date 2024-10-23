@@ -2,6 +2,9 @@ import tensorflow as tf
 from keras import Input 
 from keras.layers import Dense, Dropout, BatchNormalization, Concatenate 
 from tensorflow.keras.models import Model
+import numpy as np
+import os
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3' 
 
 class Build_NN():
     def __init__(self, param_dict, SEED=42):
@@ -85,3 +88,8 @@ class Build_NN():
                       outputs=list(self.output_layers.values()))
         return model
 
+def prep_tf_data(df, input_cols_dict):
+    for k,v in input_cols_dict.items():
+        if k[:5]=='input':
+            temp_df = df[v].to_numpy(dtype=np.float32)
+    
