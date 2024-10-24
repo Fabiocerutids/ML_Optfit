@@ -19,6 +19,7 @@ class HyperOptim():
                  features, 
                  target, 
                  evaluation_func, 
+                 prediction_type='classification',
                  seed=42):
         self.direction=direction
         self.x_train = train[features]
@@ -28,6 +29,8 @@ class HyperOptim():
         self.direction=direction
         self.evaluation_func=evaluation_func
         self.SEED=seed
+        self.prediction_type=prediction_type
+        self.best_metric=0
         random.seed(self.SEED)
         np.random.seed(self.SEED)
         
@@ -80,8 +83,31 @@ class HyperOptim():
     def _objective_func(self, trial, model_type):
         optuna_dict = self._get_optuna_dict(trial)
         model = model_type(**optuna_dict)
-        predict = model.predict(self.x_valid)
-        return self.evaluation_func(self.y_valid, predict) 
+        model.fit(self.x_train, self.y_train)
+        if self.prediction_type=='classification':
+            predict = model.predict_proba(self.x_valid)
+            score, best_threshold = self._optimize_thresholds(predict)
+            optuna_dict['best_threshold']=best_threshold
+        else:
+            predict = model.predict(self.x_valid)
+            score = self.evaluation_func(self.y_valid, predict) 
+        if score > self.best_metric:
+            self.best_metric=score
+            self.best_hyperparams = optuna_dict
+        return score
+    
+    def _optimize_thresholds(self, pred):
+        max_score = 0
+        best_thresh = 0
+        for i in np.linspace(0,1,num=100):
+            new_pred=pred.copy()
+            new_pred = new_pred[:,1]
+            new_pred[new_pred>i]=1
+            new_pred[new_pred<=i]=0
+            if self.evaluation_func(self.y_valid, new_pred) > max_score:
+                max_score = self.evaluation_func(self.y_valid, new_pred)
+                best_thresh = i
+        return max_score, best_thresh
     
     def optimize_model(self, 
                        model_type, 
@@ -98,7 +124,7 @@ class HyperOptim():
         self.study = optuna.create_study(direction=self.direction, sampler=self.sampler, study_name=study_name, load_if_exists=load_if_exists)
         self.hyperparam_dict=hyperparam_dict
         self.study.optimize(lambda trial: self._objective_func(trial, model_type), n_trials=n_trials, n_jobs=n_jobs, show_progress_bar=show_progress_bar, timeout=timeout)
-        return self.study
+        return self.study, self.best_hyperparams
     
     
 class HyperOptimNN():
@@ -124,6 +150,7 @@ class HyperOptimNN():
         self.prediction_type=prediction_type
         self.callback = tf.keras.callbacks.EarlyStopping(monitor='val_loss',patience=patience, restore_best_weights=True)
         self.SEED=seed
+        self.best_metric = 0
         random.seed(self.SEED)
         np.random.seed(self.SEED)
         
@@ -134,8 +161,14 @@ class HyperOptimNN():
         model.fit(self.train, validation_data = self.valid, epochs=self.epochs, callbacks=[self.callback], verbose=0)
         predict = model.predict(self.valid, verbose=0)
         if self.prediction_type=='classification':
-            predict=np.argmax(predict,1)
-        return self.evaluation_func(self.y_valid, predict) 
+            score, best_threshold = self._optimize_thresholds(predict)
+            optuna_dict['best_threshold']=best_threshold
+        else:
+            score = self.evaluation_func(self.y_valid, predict) 
+        if score > self.best_metric:
+            self.best_metric=score
+            self.best_hyperparams = optuna_dict
+        return score
     
     def _apply_optuna_int(self, trial, target_dic,k, subk, i):
         if 'step' in target_dic[k][subk].keys() and 'log' in target_dic[k][subk].keys():
@@ -201,8 +234,20 @@ class HyperOptimNN():
                 out_dict[k]['units']=units_l
                 out_dict[k]['activation']=activation_l
                 out_dict[k]['dropouts']=dropouts_l
-        print(out_dict)
         return out_dict 
+    
+    def _optimize_thresholds(self, pred):
+        max_score = 0
+        best_thresh = 0
+        for i in np.linspace(0,1,num=100):
+            new_pred=pred.copy()
+            new_pred = new_pred
+            new_pred[new_pred>i]=1
+            new_pred[new_pred<=i]=0
+            if self.evaluation_func(self.y_valid, new_pred) > max_score:
+                max_score = self.evaluation_func(self.y_valid, new_pred)
+                best_thresh = i
+        return max_score, best_thresh
     
     def optimize_nn(self, 
                     input_hyper, 
@@ -221,7 +266,7 @@ class HyperOptimNN():
         self.common_hyper = common_hyper
         self.output_hyper = output_hyper
         self.study.optimize(self._objective_func_nn, n_trials=n_trials, n_jobs=n_jobs, show_progress_bar=show_progress_bar, timeout=timeout)
-        return self.study
+        return self.study, self.best_hyperparams
     
 """
 {'input_1':{
