@@ -2,7 +2,7 @@ import optuna
 from optuna.samplers import TPESampler
 import random 
 import numpy as np
-from nn_model_creation import Build_NN 
+from ml_optfit.nn_model_creation import Build_NN 
 import tensorflow as tf
 from collections import defaultdict
 import warnings 
