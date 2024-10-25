@@ -22,6 +22,7 @@ class HyperOptim():
                  prediction_type='classification',
                  seed=42):
         self.direction=direction
+        train = train.sample(frac=1) #shuffle train
         self.x_train = train[features]
         self.x_valid = valid[features]
         self.y_train = train[target]
@@ -133,6 +134,7 @@ class HyperOptimNN():
                  train, 
                  valid, 
                  y_valid,
+                 unshuffled_valid,
                  evaluation_func,
                  loss_func,  
                  prediction_type='classification',
@@ -145,6 +147,7 @@ class HyperOptimNN():
         self.evaluation_func=evaluation_func
         self.train = train 
         self.valid = valid
+        self.unshuffled_valid=unshuffled_valid
         self.y_valid = y_valid
         self.epochs=epochs
         self.prediction_type=prediction_type
@@ -159,7 +162,7 @@ class HyperOptimNN():
         model = Build_NN(param_dict=optuna_dict).build()
         model.compile(optimizer='adam', loss=self.loss_func)
         model.fit(self.train, validation_data = self.valid, epochs=self.epochs, callbacks=[self.callback], verbose=0)
-        predict = model.predict(self.valid, verbose=0)
+        predict = model.predict(self.unshuffled_valid, verbose=0)
         if self.prediction_type=='classification':
             score, best_threshold = self._optimize_thresholds(predict)
             optuna_dict['best_threshold']=best_threshold

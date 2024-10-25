@@ -87,9 +87,3 @@ class Build_NN():
         model = Model(inputs=list(self.input_layers.values()),
                       outputs=list(self.output_layers.values()))
         return model
-
-def prep_tf_data(df, input_cols_dict):
-    for k,v in input_cols_dict.items():
-        if k[:5]=='input':
-            temp_df = df[v].to_numpy(dtype=np.float32)
-    
