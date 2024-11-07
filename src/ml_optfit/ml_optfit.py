@@ -95,6 +95,7 @@ class HyperOptim():
         if score > self.best_metric:
             self.best_metric=score
             self.best_hyperparams = optuna_dict
+            self.best_model = model
         return score
     
     def _optimize_thresholds(self, pred):
@@ -125,7 +126,7 @@ class HyperOptim():
         self.study = optuna.create_study(direction=self.direction, sampler=self.sampler, study_name=study_name, load_if_exists=load_if_exists)
         self.hyperparam_dict=hyperparam_dict
         self.study.optimize(lambda trial: self._objective_func(trial, model_type), n_trials=n_trials, n_jobs=n_jobs, show_progress_bar=show_progress_bar, timeout=timeout)
-        return self.study, self.best_hyperparams
+        return self.study, self.best_hyperparams, self.best_model
     
     
 class HyperOptimNN():
@@ -171,6 +172,7 @@ class HyperOptimNN():
         if score > self.best_metric:
             self.best_metric=score
             self.best_hyperparams = optuna_dict
+            self.best_model = model
         return score
     
     def _apply_optuna_int(self, trial, target_dic,k, subk, i):
@@ -269,7 +271,7 @@ class HyperOptimNN():
         self.common_hyper = common_hyper
         self.output_hyper = output_hyper
         self.study.optimize(self._objective_func_nn, n_trials=n_trials, n_jobs=n_jobs, show_progress_bar=show_progress_bar, timeout=timeout)
-        return self.study, self.best_hyperparams
+        return self.study, self.best_hyperparams, self.best_model
     
 """
 {'input_1':{
