@@ -6,7 +6,14 @@ To automate hyperparameter search and NN Building, make sure to pass dictionarie
 Note: The repository exploits Optuna as the library of choice to perform hyperparameter search. To familiarize with the library: https://optuna.org/
 
 ## Installation Guide
-To install the package, please perform the following steps:
+To install the package:
+
+```bash
+pip install -i https://test.pypi.org/simple/ ml-optfit
+```
+
+Alternatively:
+
 1. Clone the repository:
 ```bash
 git clone https://github.com/Fabiocerutids/ML_Optfit.git
