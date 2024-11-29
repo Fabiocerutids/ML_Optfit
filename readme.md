@@ -9,7 +9,7 @@ Note: The repository exploits Optuna as the library of choice to perform hyperpa
 To install the package:
 
 ```bash
-pip install -i https://test.pypi.org/simple/ ml-optfit
+pip install ml-optfit==0.1.0
 ```
 
 Alternatively:
