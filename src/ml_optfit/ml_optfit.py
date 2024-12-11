@@ -155,6 +155,7 @@ class HyperOptimNN():
         self.callback = tf.keras.callbacks.EarlyStopping(monitor='val_loss',patience=patience, restore_best_weights=True)
         self.SEED=seed
         self.best_metric = 0
+        self.quantiles = []
         random.seed(self.SEED)
         np.random.seed(self.SEED)
         
@@ -164,7 +165,9 @@ class HyperOptimNN():
         model.compile(optimizer='adam', loss=self.loss_func)
         model.fit(self.train, validation_data = self.valid, epochs=self.epochs, callbacks=[self.callback], verbose=0)
         predict = model.predict(self.unshuffled_valid, verbose=0)
-        if self.prediction_type=='classification':
+        if self.prediction_type=='quantile'and type(self.loss_func)==list:
+            score = np.mean([self.evaluation_func(self.y_valid, predict[:, i], tau=self.quantiles[i]) for i in predict.shape[1]]) 
+        elif self.prediction_type=='classification':
             score, best_threshold = self._optimize_thresholds(predict)
             optuna_dict['best_threshold']=best_threshold
         else:
