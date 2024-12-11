@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "ml_optfit"
-version = "0.1.3"
+version = "0.1.4"
 description = "Automate ML Hyperopt and NN Creation and optimization"
 repository = "https://github.com/Fabiocerutids/ML_Optfit"
 readme = 'README.md'

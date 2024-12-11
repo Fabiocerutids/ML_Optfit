@@ -141,7 +141,8 @@ class HyperOptimNN():
                  prediction_type='classification',
                  seed=42,
                  epochs=200,
-                 patience=10): 
+                 patience=10,
+                 quantiles=[]): 
         self.direction=direction
         self.loss_func = loss_func
         self.direction=direction
@@ -155,7 +156,7 @@ class HyperOptimNN():
         self.callback = tf.keras.callbacks.EarlyStopping(monitor='val_loss',patience=patience, restore_best_weights=True)
         self.SEED=seed
         self.best_metric = 0
-        self.quantiles = []
+        self.quantiles = quantiles
         random.seed(self.SEED)
         np.random.seed(self.SEED)
         
