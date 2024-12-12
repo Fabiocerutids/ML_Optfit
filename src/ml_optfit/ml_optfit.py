@@ -167,7 +167,7 @@ class HyperOptimNN():
         model.fit(self.train, validation_data = self.valid, epochs=self.epochs, callbacks=[self.callback], verbose=0)
         predict = model.predict(self.unshuffled_valid, verbose=0)
         if self.prediction_type=='quantile'and type(self.loss_func)==list:
-            score = np.mean([self.evaluation_func(self.y_valid, predict[:, i], tau=self.quantiles[i]) for i in predict.shape[1]]) 
+            score = np.mean([self.evaluation_func(self.y_valid, predict[i], tau=self.quantiles[i]) for i in range(len(self.quantiles))]) 
         elif self.prediction_type=='classification':
             score, best_threshold = self._optimize_thresholds(predict)
             optuna_dict['best_threshold']=best_threshold
